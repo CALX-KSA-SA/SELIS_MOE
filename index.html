@@ -1958,6 +1958,34 @@ langBtn.addEventListener('click', () => {
   setLang(current === 'ar' ? 'en' : 'ar');
 });
 
+
+/* ── Mobile SVG emoji fix ── */
+(function fixSvgEmoji(){
+  var emojiRe = /[\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]/g;
+  document.querySelectorAll('svg text').forEach(function(el){
+    if(!emojiRe.test(el.textContent)){emojiRe.lastIndex=0;return;}
+    emojiRe.lastIndex=0;
+    var x=parseFloat(el.getAttribute('x')||0);
+    var y=parseFloat(el.getAttribute('y')||0);
+    var fs=parseFloat(el.getAttribute('font-size')||16);
+    var anchor=el.getAttribute('text-anchor')||'start';
+    var fo=document.createElementNS('http://www.w3.org/2000/svg','foreignObject');
+    var w=fs*1.8, h=fs*1.8;
+    var ox = anchor==='middle'? x-w/2 : anchor==='end'? x-w : x;
+    fo.setAttribute('x', ox);
+    fo.setAttribute('y', y - fs*1.15);
+    fo.setAttribute('width', w);
+    fo.setAttribute('height', h);
+    fo.setAttribute('overflow','visible');
+    var div=document.createElementNS('http://www.w3.org/1999/xhtml','div');
+    div.style.cssText='font-size:'+fs+'px;text-align:center;line-height:1.1;width:100%;pointer-events:none';
+    div.textContent=el.textContent;
+    fo.appendChild(div);
+    el.parentNode.insertBefore(fo,el);
+    el.setAttribute('visibility','hidden');
+  });
+})();
+
 // initial state — default to Arabic
 const savedLang = (() => { try { return localStorage.getItem('lang'); } catch(e){ return null; } })();
 setLang(savedLang === 'en' ? 'en' : 'ar');
